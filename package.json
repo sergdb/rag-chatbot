@@ -1,0 +1,13 @@
+{
+  "name": "doc-qa",
+  "private": true,
+  "scripts": {
+    "setup": "npm install && npm install --prefix frontend && python -m pip install -r backend/requirements.txt",
+    "start": "concurrently -k -n api,web -c cyan,magenta \"npm run api\" \"npm run web\"",
+    "api": "cd backend && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload",
+    "web": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

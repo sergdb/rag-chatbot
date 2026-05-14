@@ -31,6 +31,6 @@ class DocumentChunk(Base):
     )
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding = mapped_column(Vector(settings.embedding_dimensions), nullable=False)
+    embedding = mapped_column(Vector(settings.openai_embedding_dimensions), nullable=False)
 
     document: Mapped["Document"] = relationship(back_populates="chunks")

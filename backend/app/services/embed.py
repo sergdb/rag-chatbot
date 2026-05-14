@@ -21,7 +21,7 @@ async def embed_texts(texts: list[str]) -> list[list[float]]:
     resp = await client.embeddings.create(
         model=settings.openai_embedding_model,
         input=texts,
-        dimensions=settings.embedding_dimensions,
+        dimensions=settings.openai_embedding_dimensions,
     )
     return [d.embedding for d in resp.data]
 
