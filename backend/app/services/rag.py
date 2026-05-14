@@ -1,23 +1,15 @@
 from uuid import UUID
 
 from openai import AsyncOpenAI
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.models import DocumentChunk
-from app.services.embed import get_openai_client
+from app.memory_store import MemoryDocumentStore
+from app.services.embed import embed_query, get_openai_client
 
 
-async def retrieve_context(session: AsyncSession, document_id: UUID, question: str) -> str:
+async def retrieve_context(store: MemoryDocumentStore, document_id: UUID, question: str) -> str:
     qvec = await embed_query(question)
-    stmt = (
-        select(DocumentChunk.content)
-        .where(DocumentChunk.document_id == document_id)
-        .order_by(DocumentChunk.embedding.cosine_distance(qvec))
-        .limit(settings.rag_top_k)
-    )
-    rows = (await session.execute(stmt)).scalars().all()
+    rows = await store.top_k_contents(document_id, qvec, settings.rag_top_k)
     if not rows:
         return ""
     parts = [f"[excerpt {i + 1}]\n{c}" for i, c in enumerate(rows)]

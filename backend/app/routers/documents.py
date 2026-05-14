@@ -1,11 +1,7 @@
-from uuid import UUID
-
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.database import get_db
-from app.models import Document, DocumentChunk
+from app.memory_store import MemoryDocumentStore, get_store
 from app.schemas import DocumentUploadResponse
 from app.services.chunk import chunk_text
 from app.services.embed import embed_texts
@@ -19,7 +15,7 @@ MAX_BYTES = settings.max_upload_mb * 1024 * 1024
 @router.post("", response_model=DocumentUploadResponse)
 async def upload_document(
     file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db),
+    store: MemoryDocumentStore = Depends(get_store),
 ) -> DocumentUploadResponse:
     if not file.filename:
         raise HTTPException(status_code=400, detail="Missing filename")
@@ -36,29 +32,15 @@ async def upload_document(
     chunks = chunk_text(text)
     if not chunks:
         raise HTTPException(status_code=400, detail="No extractable text in document")
-    doc = Document(filename=file.filename)
-    db.add(doc)
-    await db.flush()
-    doc_id: UUID = doc.id
-    batch_size = 64
     all_embeddings: list[list[float]] = []
+    batch_size = 64
     for i in range(0, len(chunks), batch_size):
         batch = chunks[i : i + batch_size]
         vecs = await embed_texts(batch)
         all_embeddings.extend(vecs)
-    for idx, (content, emb) in enumerate(zip(chunks, all_embeddings, strict=True)):
-        db.add(
-            DocumentChunk(
-                document_id=doc_id,
-                chunk_index=idx,
-                content=content,
-                embedding=emb,
-            )
-        )
-    await db.commit()
-    await db.refresh(doc)
+    doc_id = await store.add_document(file.filename, chunks, all_embeddings)
     return DocumentUploadResponse(
-        id=str(doc.id),
-        filename=doc.filename,
+        id=str(doc_id),
+        filename=file.filename,
         chunk_count=len(chunks),
     )

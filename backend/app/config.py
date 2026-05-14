@@ -27,7 +27,6 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/docqa"
     openai_api_key: str = ""
 
     openai_chat_model: str
