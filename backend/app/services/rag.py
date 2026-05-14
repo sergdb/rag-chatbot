@@ -37,7 +37,6 @@ async def chat_with_context(
     resp = await client.chat.completions.create(
         model=settings.openai_chat_model,
         messages=openai_messages,
-        temperature=0.2,
     )
     choice = resp.choices[0]
     return (choice.message.content or "").strip()
