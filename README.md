@@ -1,5 +1,7 @@
 # Document Q&A (OpenAI, in-memory index)
 
+**Learning Project**: This is a hands-on project for learning how to use Cursor - an AI-powered code editor. It demonstrates building a full-stack RAG (Retrieval-Augmented Generation) application with modern web technologies.
+
 Full-stack RAG app: upload `.txt`, `.pdf`, or `.docx`, ask questions grounded in that document. **Chat is only kept in browser memory** — refresh clears messages and the selected document. **Uploaded chunks and embeddings live in the API process memory** — restarting the backend clears them; there is no database.
 
 ## Prerequisites
